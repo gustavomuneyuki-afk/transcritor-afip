@@ -1,4 +1,4 @@
-import type { RenalData } from "../types/exams";
+import type { RenalData } from "../types/exams.ts";
 
 export function formatRenal(data: RenalData): string {
   const parts: string[] = [];

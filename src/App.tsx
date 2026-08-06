@@ -9,8 +9,13 @@ import {
 import "./App.css";
 
 import { readPdf } from "./utils/pdfReader";
+
 import { parseHemogram } from "./parser/hemogramParser";
 import { formatHemogram } from "./formatter/hemogramFormatter";
+
+import { parseGlycemic } from "./parser/glycemicParser";
+import { formatGlycemic } from "./formatter/glycemicFormatter";
+
 import { parseRenal } from "./parser/renalParser";
 import { formatRenal } from "./formatter/renalFormatter";
 
@@ -22,7 +27,9 @@ function App() {
   const [isReading, setIsReading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function handleFile(event: ChangeEvent<HTMLInputElement>) {
+  async function handleFile(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -40,10 +47,12 @@ function App() {
       const parsedPdf = await readPdf(file);
 
       const hemogram = parseHemogram(parsedPdf.lines);
+      const glycemic = parseGlycemic(parsedPdf.lines);
       const renal = parseRenal(parsedPdf.lines);
 
       const formattedGroups = [
         formatHemogram(hemogram),
+        formatGlycemic(glycemic),
         formatRenal(renal),
       ].filter((group) => group.length > 0);
 
@@ -69,6 +78,11 @@ function App() {
       setError(message);
     } finally {
       setIsReading(false);
+
+      /*
+       * Permite selecionar novamente o mesmo PDF.
+       */
+      event.target.value = "";
     }
   }
 
@@ -76,6 +90,8 @@ function App() {
     if (!result) {
       return;
     }
+
+    setError("");
 
     try {
       await navigator.clipboard.writeText(result);
@@ -99,8 +115,10 @@ function App() {
 
           <div>
             <h1>Transcritor AFIP</h1>
+
             <p>
-              Selecione um PDF da AFIP para gerar a transcrição.
+              Selecione um PDF da AFIP para gerar a
+              transcrição.
             </p>
           </div>
         </header>
@@ -113,7 +131,9 @@ function App() {
             disabled={isReading}
           />
 
-          <span className="fileButton">Selecionar PDF</span>
+          <span className="fileButton">
+            Selecionar PDF
+          </span>
 
           <span className="fileName">
             {fileName || "Nenhum arquivo selecionado"}
@@ -123,7 +143,12 @@ function App() {
         <div className="status" aria-live="polite">
           {isReading && (
             <>
-              <LoaderCircle className="spinner" size={18} />
+              <LoaderCircle
+                className="spinner"
+                size={18}
+                aria-hidden="true"
+              />
+
               Lendo e processando o PDF...
             </>
           )}
@@ -131,9 +156,16 @@ function App() {
           {!isReading && status && status}
         </div>
 
-        {error && <div className="error">{error}</div>}
+        {error && (
+          <div className="error" role="alert">
+            {error}
+          </div>
+        )}
 
-        <label className="resultLabel" htmlFor="result">
+        <label
+          className="resultLabel"
+          htmlFor="result"
+        >
           Transcrição
         </label>
 
