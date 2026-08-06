@@ -63,7 +63,7 @@ export type ExamResult = {
   renal: RenalData;
   lipid: LipidData;
 
-  electrolytes?: ElectrolyteData;
+  electrolytes: ElectrolyteData;
   urineProtein?: UrineProteinData;
   hormones?: HormoneData;
   urinalysis?: UrinalysisData;
