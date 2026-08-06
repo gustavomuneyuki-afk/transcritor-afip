@@ -1,5 +1,39 @@
 import type { PdfLine } from "../utils/pdfReader";
 
+export type ExtractionStrategy =
+  | "inline"
+  | "result"
+  | "inline-or-result"
+  | "all-matches";
+
+export type ExamDefinition<Key extends string = string> = {
+  key: Key;
+  labels: string[];
+  strategy: ExtractionStrategy;
+
+  /**
+   * Termos usados para ignorar linhas indesejadas.
+   *
+   * Exemplo: evitar que "Creatinina urinária" seja
+   * confundida com creatinina sérica.
+   */
+  excludedTerms?: string[];
+
+  /**
+   * Textos removidos antes de extrair números.
+   *
+   * Exemplo: "(A1C)" contém o número 1, mas ele não
+   * representa o resultado da hemoglobina glicada.
+   */
+  ignoredPatterns?: RegExp[];
+
+  /**
+   * Quantidade máxima de linhas abaixo do título em que
+   * procuraremos uma linha iniciada por "Resultado".
+   */
+  maxFollowingLines?: number;
+};
+
 export function normalizeText(value: string): string {
   return value
     .normalize("NFD")
@@ -30,59 +64,264 @@ export function cleanValue(
     .trim();
 }
 
+function containsExcludedTerm(
+  line: PdfLine,
+  excludedTerms: string[],
+): boolean {
+  const normalizedLine = normalizeText(line.text);
+
+  return excludedTerms
+    .map(normalizeText)
+    .some((term) => normalizedLine.includes(term));
+}
+
+function lineStartsWithAnyLabel(
+  line: PdfLine,
+  labels: string[],
+): boolean {
+  const normalizedLine = normalizeText(line.text);
+
+  return labels
+    .map(normalizeText)
+    .some((label) => normalizedLine.startsWith(label));
+}
+
+export function findAllLines(
+  lines: PdfLine[],
+  labels: string[],
+  excludedTerms: string[] = [],
+): PdfLine[] {
+  return lines.filter((line) => {
+    const matchesLabel = lineStartsWithAnyLabel(
+      line,
+      labels,
+    );
+
+    const isExcluded = containsExcludedTerm(
+      line,
+      excludedTerms,
+    );
+
+    return matchesLabel && !isExcluded;
+  });
+}
+
 export function findLine(
   lines: PdfLine[],
   labels: string[],
   excludedTerms: string[] = [],
 ): PdfLine | undefined {
-  const normalizedLabels = labels.map(normalizeText);
-  const normalizedExcludedTerms =
-    excludedTerms.map(normalizeText);
+  return findAllLines(
+    lines,
+    labels,
+    excludedTerms,
+  )[0];
+}
 
-  return lines.find((line) => {
-    const normalizedLine = normalizeText(line.text);
+function removeIgnoredPatterns(
+  value: string,
+  patterns: RegExp[],
+): string {
+  return patterns.reduce(
+    (currentValue, pattern) =>
+      currentValue.replace(pattern, ""),
+    value,
+  );
+}
 
-    const matchesLabel = normalizedLabels.some((label) =>
-      normalizedLine.startsWith(label),
-    );
+function findMatchingLabel(
+  line: PdfLine,
+  labels: string[],
+): string | undefined {
+  const normalizedLine = normalizeText(line.text);
 
-    const containsExcludedTerm =
-      normalizedExcludedTerms.some((term) =>
-        normalizedLine.includes(term),
-      );
-
-    return matchesLabel && !containsExcludedTerm;
-  });
+  return labels.find((label) =>
+    normalizedLine.startsWith(
+      normalizeText(label),
+    ),
+  );
 }
 
 export function extractFirstValueAfterLabel(
   line: PdfLine | undefined,
   labels: string[],
+  ignoredPatterns: RegExp[] = [],
 ): string | undefined {
   if (!line) {
     return undefined;
   }
 
-  const normalizedLine = normalizeText(line.text);
+  const matchingLabel = findMatchingLabel(
+    line,
+    labels,
+  );
 
-  for (const label of labels) {
-    const normalizedLabel = normalizeText(label);
+  if (!matchingLabel) {
+    return undefined;
+  }
 
-    if (!normalizedLine.startsWith(normalizedLabel)) {
+  const remainingText = line.text.slice(
+    matchingLabel.length,
+  );
+
+  const sanitizedText = removeIgnoredPatterns(
+    remainingText,
+    ignoredPatterns,
+  );
+
+  return cleanValue(
+    extractNumbers(sanitizedText)[0],
+  );
+}
+
+function extractInlineFromAllMatches(
+  lines: PdfLine[],
+  definition: ExamDefinition,
+): string | undefined {
+  const matchingLines = findAllLines(
+    lines,
+    definition.labels,
+    definition.excludedTerms,
+  );
+
+  for (const line of matchingLines) {
+    const value = extractFirstValueAfterLabel(
+      line,
+      definition.labels,
+      definition.ignoredPatterns,
+    );
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function extractResultAfterMatchingHeading(
+  lines: PdfLine[],
+  definition: ExamDefinition,
+): string | undefined {
+  const matchingLines = findAllLines(
+    lines,
+    definition.labels,
+    definition.excludedTerms,
+  );
+
+  const maxFollowingLines =
+    definition.maxFollowingLines ?? 8;
+
+  for (const headingLine of matchingLines) {
+    const headingIndex = lines.indexOf(
+      headingLine,
+    );
+
+    if (headingIndex === -1) {
       continue;
     }
 
-    /*
-     * Remove o título usando o comprimento do rótulo original
-     * e procura o primeiro valor numérico restante.
-     */
-    const remainingText = line.text.slice(label.length);
-    const values = extractNumbers(remainingText);
+    for (
+      let offset = 1;
+      offset <= maxFollowingLines;
+      offset += 1
+    ) {
+      const candidate =
+        lines[headingIndex + offset];
 
-    return cleanValue(values[0]);
+      if (
+        !candidate ||
+        candidate.page !== headingLine.page
+      ) {
+        break;
+      }
+
+      const normalizedCandidate = normalizeText(
+        candidate.text,
+      );
+
+      if (
+        !normalizedCandidate.startsWith(
+          "resultado",
+        )
+      ) {
+        continue;
+      }
+
+      const value = cleanValue(
+        extractNumbers(candidate.text)[0],
+      );
+
+      if (value) {
+        return value;
+      }
+    }
   }
 
-  return cleanValue(extractNumbers(line.text)[0]);
+  return undefined;
+}
+
+export function extractResultAfterHeading(
+  lines: PdfLine[],
+  labels: string[],
+  maxFollowingLines = 8,
+  excludedTerms: string[] = [],
+): string | undefined {
+  return extractResultAfterMatchingHeading(
+    lines,
+    {
+      key: "temporary",
+      labels,
+      strategy: "result",
+      maxFollowingLines,
+      excludedTerms,
+    },
+  );
+}
+
+export function extractExamValue(
+  lines: PdfLine[],
+  definition: ExamDefinition,
+): string | undefined {
+  switch (definition.strategy) {
+    case "inline":
+      return extractFirstValueAfterLabel(
+        findLine(
+          lines,
+          definition.labels,
+          definition.excludedTerms,
+        ),
+        definition.labels,
+        definition.ignoredPatterns,
+      );
+
+    case "result":
+      return extractResultAfterMatchingHeading(
+        lines,
+        definition,
+      );
+
+    case "all-matches":
+      return extractInlineFromAllMatches(
+        lines,
+        definition,
+      );
+
+    case "inline-or-result":
+      return (
+        extractInlineFromAllMatches(
+          lines,
+          definition,
+        ) ??
+        extractResultAfterMatchingHeading(
+          lines,
+          definition,
+        )
+      );
+
+    default:
+      return undefined;
+  }
 }
 
 export function parseBrazilianNumber(
@@ -100,7 +339,9 @@ export function parseBrazilianNumber(
 
   const parsed = Number(normalized);
 
-  return Number.isFinite(parsed) ? parsed : undefined;
+  return Number.isFinite(parsed)
+    ? parsed
+    : undefined;
 }
 
 export function convertThousandsToAbsolute(
@@ -115,77 +356,10 @@ export function convertThousandsToAbsolute(
   return Math.round(parsed * 1000);
 }
 
-export function formatInteger(value: number): string {
+export function formatInteger(
+  value: number,
+): string {
   return new Intl.NumberFormat("pt-BR", {
     maximumFractionDigits: 0,
   }).format(value);
-}
-export function extractResultAfterHeading(
-  lines: PdfLine[],
-  labels: string[],
-  maxFollowingLines = 5,
-): string | undefined {
-  const normalizedLabels = labels.map(normalizeText);
-
-  const headingIndex = lines.findIndex((line) => {
-    const normalizedLine = normalizeText(line.text);
-
-    return normalizedLabels.some((label) =>
-      normalizedLine.startsWith(label),
-    );
-  });
-
-  if (headingIndex === -1) {
-    return undefined;
-  }
-
-  const headingLine = lines[headingIndex];
-  const normalizedHeading = normalizeText(headingLine.text);
-
-  /*
-   * Primeiro tenta obter o valor na própria linha do exame.
-   * Remove "(A1C)" para não interpretar o número 1 como resultado.
-   */
-  for (const label of labels) {
-    const normalizedLabel = normalizeText(label);
-
-    if (!normalizedHeading.startsWith(normalizedLabel)) {
-      continue;
-    }
-
-    const remainingText = headingLine.text
-      .slice(label.length)
-      .replace(/\(\s*A1C\s*\)/gi, "")
-      .replace(/\bHbA1c\b/gi, "");
-
-    const directValues = extractNumbers(remainingText);
-
-    if (directValues[0]) {
-      return cleanValue(directValues[0]);
-    }
-  }
-
-  /*
-   * Caso o título não contenha o valor, procura uma linha
-   * "Resultado" logo abaixo, na mesma página.
-   */
-  for (
-    let offset = 1;
-    offset <= maxFollowingLines;
-    offset += 1
-  ) {
-    const candidate = lines[headingIndex + offset];
-
-    if (!candidate || candidate.page !== headingLine.page) {
-      break;
-    }
-
-    const normalizedCandidate = normalizeText(candidate.text);
-
-    if (normalizedCandidate.startsWith("resultado")) {
-      return cleanValue(extractNumbers(candidate.text)[0]);
-    }
-  }
-
-  return undefined;
 }
