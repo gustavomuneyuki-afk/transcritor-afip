@@ -1,4 +1,4 @@
-import type { HemogramData } from "../types/exams";
+import type { HemogramData } from "../types/exams.ts";
 
 function formatInteger(value: number): string {
   return new Intl.NumberFormat("pt-BR", {

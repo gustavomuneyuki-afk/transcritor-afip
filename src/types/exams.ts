@@ -1,11 +1,9 @@
 export type HemogramData = {
   hemoglobin?: string;
   hematocrit?: string;
-
   leukocytes?: number;
   neutrophils?: number;
   lymphocytes?: number;
-
   platelets?: number;
 };
 
@@ -19,10 +17,6 @@ export type RenalData = {
   creatinine?: string;
   estimatedGfr?: string;
 };
-
-/*
- * Preparação para as próximas sprints
- */
 
 export type LipidData = {
   totalCholesterol?: string;
@@ -45,6 +39,7 @@ export type UrineProteinData = {
   urineCreatinine?: string;
   urineAlbumin?: string;
   proteinCreatinineRatio?: string;
+  albuminCreatinineRatio?: string;
 };
 
 export type HormoneData = {
@@ -62,18 +57,12 @@ export type UrinalysisData = {
   summary?: string;
 };
 
-/*
- * Resultado completo do parser.
- * Ainda não utilizaremos tudo, mas isso facilitará
- * muito quando adicionarmos os próximos módulos.
- */
-
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
   renal: RenalData;
+  lipid: LipidData;
 
-  lipid?: LipidData;
   electrolytes?: ElectrolyteData;
   urineProtein?: UrineProteinData;
   hormones?: HormoneData;

@@ -3,6 +3,7 @@ import type { PdfLine } from "../utils/pdfReader";
 
 import { parseGlycemic } from "./glycemicParser";
 import { parseHemogram } from "./hemogramParser";
+import { parseLipidProfile } from "./lipidProfileParser";
 import { parseRenal } from "./renalParser";
 
 export function parseAllExams(
@@ -12,5 +13,6 @@ export function parseAllExams(
     hemogram: parseHemogram(lines),
     glycemic: parseGlycemic(lines),
     renal: parseRenal(lines),
+    lipid: parseLipidProfile(lines),
   };
 }
