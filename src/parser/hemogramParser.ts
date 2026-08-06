@@ -1,138 +1,45 @@
-import type { PdfLine } from "../utils/pdfReader";
 import type { HemogramData } from "../types/exams";
+import type { PdfLine } from "../utils/pdfReader";
 
-/**
- * Remove acentos e padroniza o texto para facilitar a busca.
- */
-function normalizeText(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
+import {
+  convertThousandsToAbsolute,
+  extractFirstValueAfterLabel,
+  extractNumbers,
+  findLine,
+} from "./parserUtils";
 
-/**
- * Procura uma linha cujo texto comece com o nome informado.
- */
-function findLine(
-  lines: PdfLine[],
-  labels: string[],
-): PdfLine | undefined {
-  const normalizedLabels = labels.map(normalizeText);
+const HEMOGLOBIN_LABELS = ["Hemoglobina"];
 
-  return lines.find((line) => {
-    const normalizedLine = normalizeText(line.text);
+const HEMATOCRIT_LABELS = [
+  "Hematócrito",
+  "Hematocrito",
+];
 
-    return normalizedLabels.some((label) =>
-      normalizedLine.startsWith(label),
-    );
-  });
-}
+const LEUKOCYTE_LABELS = [
+  "Leucócitos",
+  "Leucocitos",
+];
 
-/**
- * Extrai números escritos como:
- *
- * 15,3
- * 7,78
- * 266
- * 1.250
- */
-function extractNumbers(text: string): string[] {
-  return text.match(/\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?/g) ?? [];
-}
+const NEUTROPHIL_LABELS = [
+  "Neutrófilos",
+  "Neutrofilos",
+];
 
-/**
- * Remove o nome do exame antes de procurar os números.
- *
- * Isso evita capturar números que eventualmente estejam presentes
- * no próprio título.
- */
-function extractNumbersAfterLabel(
-  line: PdfLine | undefined,
-  labels: string[],
-): string[] {
-  if (!line) {
-    return [];
-  }
+const LYMPHOCYTE_TOTAL_LABELS = [
+  "Linfócitos totais",
+  "Linfocitos totais",
+];
 
-  const normalizedLine = normalizeText(line.text);
+const LYMPHOCYTE_TYPICAL_LABELS = [
+  "Linfócitos típicos",
+  "Linfocitos tipicos",
+];
 
-  for (const label of labels) {
-    const normalizedLabel = normalizeText(label);
+const PLATELET_LABELS = ["Plaquetas"];
 
-    if (normalizedLine.startsWith(normalizedLabel)) {
-      const remainingText = line.text.slice(label.length);
-      return extractNumbers(remainingText);
-    }
-  }
-
-  return extractNumbers(line.text);
-}
-
-/**
- * Converte um valor brasileiro para número JavaScript.
- *
- * Exemplos:
- * "7,78" → 7.78
- * "1.250,4" → 1250.4
- */
-function parseBrazilianNumber(value: string | undefined): number | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  const normalized = value
-    .replace(/\./g, "")
-    .replace(",", ".");
-
-  const parsed = Number(normalized);
-
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-/**
- * Nos PDFs da AFIP, leucócitos e contagens diferenciais aparecem
- * em milhares por mm³.
- *
- * Exemplo:
- * 7,78 Mil/mm³ → 7.780/mm³
- */
-function convertThousandsToAbsolute(
+function cleanDecimal(
   value: string | undefined,
-): number | undefined {
-  const parsed = parseBrazilianNumber(value);
-
-  if (parsed === undefined) {
-    return undefined;
-  }
-
-  return Math.round(parsed * 1000);
-}
-
-/**
- * Plaquetas aparecem como:
- *
- * 266 Mil/mm³
- *
- * e devem ser exibidas como:
- *
- * 266.000
- */
-function convertPlatelets(
-  value: string | undefined,
-): number | undefined {
-  return convertThousandsToAbsolute(value);
-}
-
-/**
- * Remove ",0" de valores inteiros.
- *
- * "43,0" → "43"
- * "15,3" → "15,3"
- */
-function cleanDecimal(value: string | undefined): string | undefined {
+): string | undefined {
   if (!value) {
     return undefined;
   }
@@ -140,80 +47,133 @@ function cleanDecimal(value: string | undefined): string | undefined {
   return value.replace(/,0$/, "");
 }
 
-export function parseHemogram(lines: PdfLine[]): HemogramData {
-  const hemoglobinLabels = ["Hemoglobina"];
-  const hematocritLabels = ["Hematócrito", "Hematocrito"];
-  const leukocyteLabels = ["Leucócitos", "Leucocitos"];
-  const neutrophilLabels = ["Neutrófilos", "Neutrofilos"];
-  const lymphocyteTotalLabels = [
-    "Linfócitos totais",
-    "Linfocitos totais",
-  ];
-  const lymphocyteTypicalLabels = [
-    "Linfócitos típicos",
-    "Linfocitos tipicos",
-  ];
-  const plateletLabels = ["Plaquetas"];
+function extractSecondNumericValue(
+  line: PdfLine | undefined,
+  labels: string[],
+): string | undefined {
+  if (!line) {
+    return undefined;
+  }
 
-  const hemoglobinLine = findLine(lines, hemoglobinLabels);
-  const hematocritLine = findLine(lines, hematocritLabels);
-  const leukocyteLine = findLine(lines, leukocyteLabels);
-  const neutrophilLine = findLine(lines, neutrophilLabels);
+  const firstValue = extractFirstValueAfterLabel(
+    line,
+    labels,
+  );
+
+  if (!firstValue) {
+    return undefined;
+  }
+
+  const label = labels.find((currentLabel) =>
+    line.text
+      .toLowerCase()
+      .startsWith(currentLabel.toLowerCase()),
+  );
+
+  const remainingText = label
+    ? line.text.slice(label.length)
+    : line.text;
+
+  const values = extractNumbers(remainingText);
+
+  return values[1];
+}
+
+export function parseHemogram(
+  lines: PdfLine[],
+): HemogramData {
+  const hemoglobinLine = findLine(
+    lines,
+    HEMOGLOBIN_LABELS,
+  );
+
+  const hematocritLine = findLine(
+    lines,
+    HEMATOCRIT_LABELS,
+  );
+
+  const leukocyteLine = findLine(
+    lines,
+    LEUKOCYTE_LABELS,
+  );
+
+  const neutrophilLine = findLine(
+    lines,
+    NEUTROPHIL_LABELS,
+  );
+
+  const lymphocyteTotalLine = findLine(
+    lines,
+    LYMPHOCYTE_TOTAL_LABELS,
+  );
+
+  const lymphocyteTypicalLine = findLine(
+    lines,
+    LYMPHOCYTE_TYPICAL_LABELS,
+  );
 
   const lymphocyteLine =
-    findLine(lines, lymphocyteTotalLabels) ??
-    findLine(lines, lymphocyteTypicalLabels);
+    lymphocyteTotalLine ?? lymphocyteTypicalLine;
 
-  const plateletLine = findLine(lines, plateletLabels);
+  const lymphocyteLabels = lymphocyteTotalLine
+    ? LYMPHOCYTE_TOTAL_LABELS
+    : LYMPHOCYTE_TYPICAL_LABELS;
 
-  const hemoglobinNumbers = extractNumbersAfterLabel(
-    hemoglobinLine,
-    hemoglobinLabels,
+  const plateletLine = findLine(
+    lines,
+    PLATELET_LABELS,
   );
 
-  const hematocritNumbers = extractNumbersAfterLabel(
-    hematocritLine,
-    hematocritLabels,
-  );
+  const hemoglobin =
+    extractFirstValueAfterLabel(
+      hemoglobinLine,
+      HEMOGLOBIN_LABELS,
+    );
 
-  const leukocyteNumbers = extractNumbersAfterLabel(
-    leukocyteLine,
-    leukocyteLabels,
-  );
+  const hematocrit =
+    extractFirstValueAfterLabel(
+      hematocritLine,
+      HEMATOCRIT_LABELS,
+    );
 
-  const neutrophilNumbers = extractNumbersAfterLabel(
-    neutrophilLine,
-    neutrophilLabels,
-  );
+  const leukocytes =
+    extractFirstValueAfterLabel(
+      leukocyteLine,
+      LEUKOCYTE_LABELS,
+    );
 
-  const lymphocyteNumbers = extractNumbersAfterLabel(
-    lymphocyteLine,
-    lymphocyteLine ===
-      findLine(lines, lymphocyteTotalLabels)
-      ? lymphocyteTotalLabels
-      : lymphocyteTypicalLabels,
-  );
+  const neutrophils =
+    extractSecondNumericValue(
+      neutrophilLine,
+      NEUTROPHIL_LABELS,
+    );
 
-  const plateletNumbers = extractNumbersAfterLabel(
-    plateletLine,
-    plateletLabels,
-  );
+  const lymphocytes =
+    extractSecondNumericValue(
+      lymphocyteLine,
+      lymphocyteLabels,
+    );
+
+  const platelets =
+    extractFirstValueAfterLabel(
+      plateletLine,
+      PLATELET_LABELS,
+    );
 
   return {
-    hemoglobin: cleanDecimal(hemoglobinNumbers[0]),
-    hematocrit: cleanDecimal(hematocritNumbers[0]),
+    hemoglobin: cleanDecimal(hemoglobin),
+    hematocrit: cleanDecimal(hematocrit),
 
-    // Leucócitos: primeiro valor numérico da linha.
-    leukocytes: convertThousandsToAbsolute(leukocyteNumbers[0]),
+    leukocytes:
+      convertThousandsToAbsolute(leukocytes),
 
-    // Neutrófilos: primeiro número é porcentagem;
-    // o segundo é a contagem absoluta.
-    neutrophils: convertThousandsToAbsolute(neutrophilNumbers[1]),
+    neutrophils:
+      convertThousandsToAbsolute(neutrophils),
 
-    // Linfócitos: primeiro número é porcentagem;
-    // o segundo é a contagem absoluta.
-    lymphocytes: convertThousandsToAbsolute(lymphocyteNumbers[1]),
+    lymphocytes:
+      convertThousandsToAbsolute(lymphocytes),
 
-    platelets: convertPlatelets(plateletNumbers[0]),
+    platelets:
+      convertThousandsToAbsolute(platelets),
   };
 }

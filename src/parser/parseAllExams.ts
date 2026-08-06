@@ -1,0 +1,16 @@
+import type { ExamResult } from "../types/exams";
+import type { PdfLine } from "../utils/pdfReader";
+
+import { parseGlycemic } from "./glycemicParser";
+import { parseHemogram } from "./hemogramParser";
+import { parseRenal } from "./renalParser";
+
+export function parseAllExams(
+  lines: PdfLine[],
+): ExamResult {
+  return {
+    hemogram: parseHemogram(lines),
+    glycemic: parseGlycemic(lines),
+    renal: parseRenal(lines),
+  };
+}

@@ -8,16 +8,9 @@ import {
 
 import "./App.css";
 
+import { formatAllExams } from "./formatter/formatAllExams";
+import { parseAllExams } from "./parser/parseAllExams";
 import { readPdf } from "./utils/pdfReader";
-
-import { parseHemogram } from "./parser/hemogramParser";
-import { formatHemogram } from "./formatter/hemogramFormatter";
-
-import { parseGlycemic } from "./parser/glycemicParser";
-import { formatGlycemic } from "./formatter/glycemicFormatter";
-
-import { parseRenal } from "./parser/renalParser";
-import { formatRenal } from "./formatter/renalFormatter";
 
 function App() {
   const [fileName, setFileName] = useState("");
@@ -46,23 +39,16 @@ function App() {
     try {
       const parsedPdf = await readPdf(file);
 
-      const hemogram = parseHemogram(parsedPdf.lines);
-      const glycemic = parseGlycemic(parsedPdf.lines);
-      const renal = parseRenal(parsedPdf.lines);
+      const exams = parseAllExams(parsedPdf.lines);
+      const formattedResult = formatAllExams(exams);
 
-      const formattedGroups = [
-        formatHemogram(hemogram),
-        formatGlycemic(glycemic),
-        formatRenal(renal),
-      ].filter((group) => group.length > 0);
-
-      if (formattedGroups.length === 0) {
+      if (!formattedResult) {
         throw new Error(
           "Não foi possível identificar exames compatíveis neste PDF.",
         );
       }
 
-      setResult(formattedGroups.join(" | "));
+      setResult(formattedResult);
 
       setStatus(
         `PDF lido: ${parsedPdf.pageCount} página${
@@ -79,9 +65,7 @@ function App() {
     } finally {
       setIsReading(false);
 
-      /*
-       * Permite selecionar novamente o mesmo PDF.
-       */
+      // Permite selecionar novamente o mesmo arquivo.
       event.target.value = "";
     }
   }
@@ -101,7 +85,9 @@ function App() {
         setCopied(false);
       }, 1500);
     } catch {
-      setError("O navegador não permitiu copiar o resultado.");
+      setError(
+        "O navegador não permitiu copiar o resultado.",
+      );
     }
   }
 
@@ -110,7 +96,10 @@ function App() {
       <section className="card">
         <header className="header">
           <div className="logo">
-            <FileText size={30} aria-hidden="true" />
+            <FileText
+              size={30}
+              aria-hidden="true"
+            />
           </div>
 
           <div>
@@ -140,7 +129,10 @@ function App() {
           </span>
         </label>
 
-        <div className="status" aria-live="polite">
+        <div
+          className="status"
+          aria-live="polite"
+        >
           {isReading && (
             <>
               <LoaderCircle
@@ -157,7 +149,10 @@ function App() {
         </div>
 
         {error && (
-          <div className="error" role="alert">
+          <div
+            className="error"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -183,9 +178,15 @@ function App() {
           disabled={!result || isReading}
         >
           {copied ? (
-            <Check size={18} aria-hidden="true" />
+            <Check
+              size={18}
+              aria-hidden="true"
+            />
           ) : (
-            <Copy size={18} aria-hidden="true" />
+            <Copy
+              size={18}
+              aria-hidden="true"
+            />
           )}
 
           {copied ? "Copiado!" : "Copiar"}

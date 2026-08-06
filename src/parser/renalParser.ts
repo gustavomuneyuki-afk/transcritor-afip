@@ -1,194 +1,75 @@
 import type { RenalData } from "../types/exams";
 import type { PdfLine } from "../utils/pdfReader";
 
-function normalizeText(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
+import {
+  extractFirstValueAfterLabel,
+  extractResultAfterHeading,
+  findLine,
+} from "./parserUtils";
 
-function extractNumbers(text: string): string[] {
-  return (
-    text.match(
-      /(?:[<>]=?\s*)?\d{1,3}(?:\.\d{3})*(?:,\d+)?|(?:[<>]=?\s*)?\d+(?:,\d+)?/g,
-    ) ?? []
-  );
-}
+const UREA_LABELS = ["Ureia"];
 
-function cleanValue(value: string | undefined): string | undefined {
-  if (!value) {
-    return undefined;
-  }
+const CREATININE_LABELS = ["Creatinina"];
 
-  return value
-    .replace(/\s+/g, "")
-    .replace(/,0$/, "")
-    .trim();
-}
+const GFR_LABELS = [
+  "TFG - Taxa de Filtração Glomerular",
+  "TFG - Taxa de Filtracao Glomerular",
+  "Taxa de Filtração Glomerular estimada",
+  "Taxa de Filtracao Glomerular estimada",
+  "Filtração Glomerular estimada",
+  "Filtracao Glomerular estimada",
+  "TFG estimada",
+  "TFG",
+  "eGFR",
+];
 
-function isUrinaryCreatinineLine(line: PdfLine): boolean {
-  const normalized = normalizeText(line.text);
-
-  return (
-    normalized.includes("urina") ||
-    normalized.includes("urinaria") ||
-    normalized.includes("amostra isolada") ||
-    normalized.includes("relacao albumina") ||
-    normalized.includes("relacao proteina")
-  );
-}
-
-function findLineStartingWith(
-  lines: PdfLine[],
-  labels: string[],
-  excludedTerms: string[] = [],
-): PdfLine | undefined {
-  const normalizedLabels = labels.map(normalizeText);
-  const normalizedExcludedTerms = excludedTerms.map(normalizeText);
-
-  return lines.find((line) => {
-    const normalizedLine = normalizeText(line.text);
-
-    const startsWithLabel = normalizedLabels.some((label) =>
-      normalizedLine.startsWith(label),
-    );
-
-    const containsExcludedTerm = normalizedExcludedTerms.some((term) =>
-      normalizedLine.includes(term),
-    );
-
-    return startsWithLabel && !containsExcludedTerm;
-  });
-}
-
-function extractFirstValueAfterLabel(
-  line: PdfLine | undefined,
-  labels: string[],
-): string | undefined {
-  if (!line) {
-    return undefined;
-  }
-
-  const normalizedLine = normalizeText(line.text);
-
-  for (const label of labels) {
-    const normalizedLabel = normalizeText(label);
-
-    if (!normalizedLine.startsWith(normalizedLabel)) {
-      continue;
-    }
-
-    /*
-     * Os rótulos podem possuir acentos, mas normalmente mantêm
-     * o mesmo comprimento do texto original. Após remover o título,
-     * o primeiro número corresponde ao resultado do exame.
-     */
-    const remainingText = line.text.slice(label.length);
-    const values = extractNumbers(remainingText);
-
-    return cleanValue(values[0]);
-  }
-
-  return cleanValue(extractNumbers(line.text)[0]);
-}
+const URINARY_TERMS = [
+  "urina",
+  "urinária",
+  "urinaria",
+  "amostra isolada",
+  "relação albumina",
+  "relacao albumina",
+  "relação proteína",
+  "relacao proteina",
+];
 
 function findSerumCreatinineLine(
   lines: PdfLine[],
 ): PdfLine | undefined {
-  return lines.find((line) => {
-    const normalized = normalizeText(line.text);
-
-    return (
-      normalized.startsWith("creatinina") &&
-      !isUrinaryCreatinineLine(line)
-    );
-  });
+  return findLine(
+    lines,
+    CREATININE_LABELS,
+    URINARY_TERMS,
+  );
 }
 
-function findGfrLine(lines: PdfLine[]): PdfLine | undefined {
-  const labels = [
-    "Taxa de Filtração Glomerular estimada",
-    "Taxa de Filtracao Glomerular estimada",
-    "Filtração Glomerular estimada",
-    "Filtracao Glomerular estimada",
-    "TFG estimada",
-    "TFG",
-    "eGFR",
-  ];
+export function parseRenal(
+  lines: PdfLine[],
+): RenalData {
+  const ureaLine = findLine(
+    lines,
+    UREA_LABELS,
+    URINARY_TERMS,
+  );
 
-  return findLineStartingWith(lines, labels);
-}
-
-function extractGfrValue(
-  line: PdfLine | undefined,
-): string | undefined {
-  if (!line) {
-    return undefined;
-  }
-
-  const normalized = normalizeText(line.text);
-
-  const labels = [
-    "taxa de filtracao glomerular estimada",
-    "filtracao glomerular estimada",
-    "tfg estimada",
-    "tfg",
-    "egfr",
-  ];
-
-  for (const label of labels) {
-    if (!normalized.startsWith(label)) {
-      continue;
-    }
-
-    /*
-     * Procura o primeiro valor após o título. Também aceita
-     * resultados como >90 ou >=90.
-     */
-    const approximateLabelLength = Math.min(
-      line.text.length,
-      label.length,
-    );
-
-    const remainingText = line.text.slice(approximateLabelLength);
-    const values = extractNumbers(remainingText);
-
-    if (values[0]) {
-      return cleanValue(values[0]);
-    }
-  }
-
-  /*
-   * Plano alternativo para linhas em que o PDF separou o título
-   * de maneira diferente.
-   */
-  const allValues = extractNumbers(line.text);
-
-  return cleanValue(allValues[0]);
-}
-
-export function parseRenal(lines: PdfLine[]): RenalData {
-  const ureaLabels = ["Ureia"];
-
-  const ureaLine = findLineStartingWith(lines, ureaLabels, [
-    "urina",
-    "urinaria",
-  ]);
-
-  const creatinineLine = findSerumCreatinineLine(lines);
-  const gfrLine = findGfrLine(lines);
+  const creatinineLine =
+    findSerumCreatinineLine(lines);
 
   return {
-    urea: extractFirstValueAfterLabel(ureaLine, ureaLabels),
+    urea: extractFirstValueAfterLabel(
+      ureaLine,
+      UREA_LABELS,
+    ),
 
     creatinine: extractFirstValueAfterLabel(
       creatinineLine,
-      ["Creatinina"],
+      CREATININE_LABELS,
     ),
 
-    estimatedGfr: extractGfrValue(gfrLine),
+    estimatedGfr: extractResultAfterHeading(
+      lines,
+      GFR_LABELS,
+    ),
   };
 }
