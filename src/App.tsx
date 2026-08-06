@@ -1,4 +1,8 @@
-import { useState, type ChangeEvent } from "react";
+import {
+  useState,
+  type ChangeEvent,
+} from "react";
+
 import {
   Check,
   Copy,
@@ -8,8 +12,11 @@ import {
 
 import "./App.css";
 
+import { DeveloperPanel } from "./components/DeveloperPanel";
 import { formatAllExams } from "./formatter/formatAllExams";
+import { createDebugReport } from "./parser/createDebugReport";
 import { parseAllExams } from "./parser/parseAllExams";
+import type { DebugReport } from "./types/debug";
 import { readPdf } from "./utils/pdfReader";
 
 function App() {
@@ -19,6 +26,12 @@ function App() {
   const [error, setError] = useState("");
   const [isReading, setIsReading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [developerMode, setDeveloperMode] =
+    useState(false);
+
+  const [debugReport, setDebugReport] =
+    useState<DebugReport | null>(null);
 
   async function handleFile(
     event: ChangeEvent<HTMLInputElement>,
@@ -34,13 +47,14 @@ function App() {
     setStatus("");
     setError("");
     setCopied(false);
+    setDebugReport(null);
     setIsReading(true);
 
     try {
       const parsedPdf = await readPdf(file);
-
       const exams = parseAllExams(parsedPdf.lines);
-      const formattedResult = formatAllExams(exams);
+      const formattedResult =
+        formatAllExams(exams);
 
       if (!formattedResult) {
         throw new Error(
@@ -48,7 +62,14 @@ function App() {
         );
       }
 
+      const report = createDebugReport(
+        exams,
+        parsedPdf.pageCount,
+        parsedPdf.lines.length,
+      );
+
       setResult(formattedResult);
+      setDebugReport(report);
 
       setStatus(
         `PDF lido: ${parsedPdf.pageCount} página${
@@ -64,8 +85,6 @@ function App() {
       setError(message);
     } finally {
       setIsReading(false);
-
-      // Permite selecionar novamente o mesmo arquivo.
       event.target.value = "";
     }
   }
@@ -125,7 +144,8 @@ function App() {
           </span>
 
           <span className="fileName">
-            {fileName || "Nenhum arquivo selecionado"}
+            {fileName ||
+              "Nenhum arquivo selecionado"}
           </span>
         </label>
 
@@ -149,10 +169,7 @@ function App() {
         </div>
 
         {error && (
-          <div
-            className="error"
-            role="alert"
-          >
+          <div className="error" role="alert">
             {error}
           </div>
         )}
@@ -191,6 +208,26 @@ function App() {
 
           {copied ? "Copiado!" : "Copiar"}
         </button>
+
+        <label className="developerToggle">
+          <input
+            type="checkbox"
+            checked={developerMode}
+            onChange={(event) =>
+              setDeveloperMode(
+                event.target.checked,
+              )
+            }
+          />
+
+          <span>Modo desenvolvedor</span>
+        </label>
+
+        {developerMode && (
+          <DeveloperPanel
+            report={debugReport}
+          />
+        )}
       </section>
     </main>
   );
