@@ -3,7 +3,9 @@ import type { ExamResult } from "../types/exams";
 import { formatElectrolytes } from "./electrolyteFormatter";
 import { formatGlycemic } from "./glycemicFormatter";
 import { formatHemogram } from "./hemogramFormatter";
+import { formatInflammatory } from "./inflammatoryFormatter";
 import { formatLipid } from "./lipidFormatter";
+import { formatLiver } from "./liverFormatter";
 import { formatRenal } from "./renalFormatter";
 
 export function formatAllExams(
@@ -15,6 +17,8 @@ export function formatAllExams(
     formatRenal(exams.renal),
     formatLipid(exams.lipid),
     formatElectrolytes(exams.electrolytes),
+    formatLiver(exams.liver),
+    formatInflammatory(exams.inflammatory),
   ].filter((group) => group.trim().length > 0);
 
   return groups.join(" | ");

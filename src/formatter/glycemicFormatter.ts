@@ -10,7 +10,9 @@ export function formatGlycemic(
   }
 
   if (data.glycatedHemoglobin) {
-    parts.push(`HbA1c ${data.glycatedHemoglobin}%`);
+    parts.push(
+      `HbA1c ${data.glycatedHemoglobin}%`,
+    );
   }
 
   return parts.join(" / ");

@@ -145,6 +145,71 @@ export function createDebugReport(
       "Cálcio ionizado",
       exams.electrolytes.ionizedCalcium,
     ),
+    createStatus(
+  "ast",
+  "TGO/AST",
+  exams.liver.ast,
+),
+createStatus(
+  "alt",
+  "TGP/ALT",
+  exams.liver.alt,
+),
+createStatus(
+  "ggt",
+  "GGT",
+  exams.liver.ggt,
+),
+createStatus(
+  "alkalinePhosphatase",
+  "Fosfatase alcalina",
+  exams.liver.alkalinePhosphatase,
+),
+createStatus(
+  "totalBilirubin",
+  "Bilirrubina total",
+  exams.liver.totalBilirubin,
+),
+createStatus(
+  "directBilirubin",
+  "Bilirrubina direta",
+  exams.liver.directBilirubin,
+),
+createStatus(
+  "indirectBilirubin",
+  "Bilirrubina indireta",
+  exams.liver.indirectBilirubin,
+),
+createStatus(
+  "albumin",
+  "Albumina",
+  exams.liver.albumin,
+),
+createStatus(
+  "totalProtein",
+  "Proteínas totais",
+  exams.liver.totalProtein,
+),
+createStatus(
+  "crp",
+  "PCR",
+  exams.inflammatory.crp,
+),
+createStatus(
+  "procalcitonin",
+  "Procalcitonina",
+  exams.inflammatory.procalcitonin,
+),
+createStatus(
+  "esr",
+  "VHS",
+  exams.inflammatory.esr,
+),
+createStatus(
+  "ferritin",
+  "Ferritina",
+  exams.inflammatory.ferritin,
+),
   ];
 
   return {

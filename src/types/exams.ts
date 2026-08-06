@@ -35,6 +35,18 @@ export type ElectrolyteData = {
   uricAcid?: string;
 };
 
+export type LiverData = {
+  ast?: string;
+  alt?: string;
+  ggt?: string;
+  alkalinePhosphatase?: string;
+  totalBilirubin?: string;
+  directBilirubin?: string;
+  indirectBilirubin?: string;
+  albumin?: string;
+  totalProtein?: string;
+};
+
 export type UrineProteinData = {
   urineCreatinine?: string;
   urineAlbumin?: string;
@@ -56,14 +68,21 @@ export type UrinalysisData = {
   nitrite?: string;
   summary?: string;
 };
+export type InflammatoryData = {
+  crp?: string;
+  procalcitonin?: string;
+  esr?: string;
+  ferritin?: string;
+};
 
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
   renal: RenalData;
   lipid: LipidData;
-
   electrolytes: ElectrolyteData;
+  liver: LiverData;
+  inflammatory: InflammatoryData;
   urineProtein?: UrineProteinData;
   hormones?: HormoneData;
   urinalysis?: UrinalysisData;

@@ -1,14 +1,14 @@
-import type { RenalData } from "../types/exams";
+import type { LiverData } from "../types/exams";
 import type { PdfLine } from "../utils/pdfReader";
 
-import { RENAL_DEFINITIONS } from "../definitions";
+import { LIVER_DEFINITIONS } from "../definitions";
 import { parseDefinitions } from "./genericExamParser";
 
-export function parseRenal(
+export function parseLiver(
   lines: PdfLine[],
-): RenalData {
+): LiverData {
   return parseDefinitions(
     lines,
-    RENAL_DEFINITIONS,
+    LIVER_DEFINITIONS,
   );
 }

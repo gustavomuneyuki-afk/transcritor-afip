@@ -4,7 +4,9 @@ import type { PdfLine } from "../utils/pdfReader";
 import { parseElectrolytes } from "./electrolyteParser";
 import { parseGlycemic } from "./glycemicParser";
 import { parseHemogram } from "./hemogramParser";
+import { parseInflammatory } from "./inflammatoryParser";
 import { parseLipidProfile } from "./lipidProfileParser";
+import { parseLiver } from "./liverParser";
 import { parseRenal } from "./renalParser";
 
 export function parseAllExams(
@@ -16,5 +18,7 @@ export function parseAllExams(
     renal: parseRenal(lines),
     lipid: parseLipidProfile(lines),
     electrolytes: parseElectrolytes(lines),
+    liver: parseLiver(lines),
+    inflammatory: parseInflammatory(lines),
   };
 }

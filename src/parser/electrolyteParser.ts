@@ -1,7 +1,7 @@
 import type { ElectrolyteData } from "../types/exams";
 import type { PdfLine } from "../utils/pdfReader";
 
-import { ELECTROLYTE_DEFINITIONS } from "./examDefinitions";
+import { ELECTROLYTE_DEFINITIONS } from "../definitions";
 import { parseDefinitions } from "./genericExamParser";
 
 export function parseElectrolytes(
