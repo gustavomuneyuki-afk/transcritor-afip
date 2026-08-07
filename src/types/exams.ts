@@ -1,10 +1,15 @@
 export type HemogramData = {
   hemoglobin?: string;
   hematocrit?: string;
+
   leukocytes?: number;
   neutrophils?: number;
   lymphocytes?: number;
+
   platelets?: number;
+
+  reticulocytesAbsolute?: number;
+  reticulocytesRelative?: string;
 };
 
 export type GlycemicData = {
@@ -57,6 +62,9 @@ export type UrineProteinData = {
 export type HormoneData = {
   tsh?: string;
   freeT4?: string;
+  acth?: string;
+  cortisol?: string;
+  pth?: string;
 };
 
 export type UrinalysisData = {
@@ -84,6 +92,6 @@ export type ExamResult = {
   liver: LiverData;
   inflammatory: InflammatoryData;
   urineProtein?: UrineProteinData;
-  hormones?: HormoneData;
+  hormones: HormoneData;
   urinalysis?: UrinalysisData;
 };

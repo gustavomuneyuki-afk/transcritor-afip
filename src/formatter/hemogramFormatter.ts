@@ -1,5 +1,6 @@
 import type { HemogramData } from "../types/exams.ts";
 
+
 function formatInteger(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
     maximumFractionDigits: 0,
@@ -40,6 +41,23 @@ export function formatHemogram(data: HemogramData): string {
   if (data.platelets !== undefined) {
     parts.push(`Plaq ${formatInteger(data.platelets)}`);
   }
+if (
+  data.reticulocytesAbsolute !== undefined ||
+  data.reticulocytesRelative
+) {
+  let reticulocyteText = "Retic";
 
+  if (data.reticulocytesAbsolute !== undefined) {
+    reticulocyteText += ` ${formatInteger(
+      data.reticulocytesAbsolute,
+    )}`;
+  }
+
+  if (data.reticulocytesRelative) {
+    reticulocyteText += ` (${data.reticulocytesRelative}%)`;
+  }
+
+  parts.push(reticulocyteText);
+}
   return parts.join(" / ");
 }

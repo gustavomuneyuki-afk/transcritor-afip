@@ -6,9 +6,12 @@ import {
   extractFirstValueAfterLabel,
   extractNumbers,
   findLine,
+  normalizeText,
 } from "./parserUtils";
 
-const HEMOGLOBIN_LABELS = ["Hemoglobina"];
+const HEMOGLOBIN_LABELS = [
+  "Hemoglobina",
+];
 
 const HEMATOCRIT_LABELS = [
   "Hematócrito",
@@ -35,8 +38,31 @@ const LYMPHOCYTE_TYPICAL_LABELS = [
   "Linfocitos tipicos",
 ];
 
-const PLATELET_LABELS = ["Plaquetas"];
+const PLATELET_LABELS = [
+  "Plaquetas",
+];
 
+const RETICULOCYTE_HEADING_LABELS = [
+  "Contagem de Reticulócitos",
+  "Contagem de Reticulocitos",
+];
+
+const RETICULOCYTE_RELATIVE_LABELS = [
+  "Valor relativo",
+];
+
+const RETICULOCYTE_ABSOLUTE_LABELS = [
+  "Valor absoluto",
+];
+
+/*
+ * Remove ",0" quando o valor não possui casas
+ * decimais relevantes.
+ *
+ * Exemplo:
+ * 43,0 -> 43
+ * 16,5 -> 16,5
+ */
 function cleanDecimal(
   value: string | undefined,
 ): string | undefined {
@@ -47,6 +73,14 @@ function cleanDecimal(
   return value.replace(/,0$/, "");
 }
 
+/*
+ * No leucograma da AFIP, a estrutura costuma ser:
+ *
+ * Neutrófilos 41,0 2,51 ...
+ *
+ * O primeiro valor é percentual.
+ * O segundo é a contagem absoluta em milhares/mm³.
+ */
 function extractSecondNumericValue(
   line: PdfLine | undefined,
   labels: string[],
@@ -55,28 +89,136 @@ function extractSecondNumericValue(
     return undefined;
   }
 
-  const firstValue = extractFirstValueAfterLabel(
-    line,
-    labels,
+  const normalizedLine = normalizeText(line.text);
+
+  const matchingLabel = labels.find((label) =>
+    normalizedLine.startsWith(
+      normalizeText(label),
+    ),
   );
 
-  if (!firstValue) {
-    return undefined;
-  }
-
-  const label = labels.find((currentLabel) =>
-    line.text
-      .toLowerCase()
-      .startsWith(currentLabel.toLowerCase()),
-  );
-
-  const remainingText = label
-    ? line.text.slice(label.length)
+  const remainingText = matchingLabel
+    ? line.text.slice(matchingLabel.length)
     : line.text;
 
-  const values = extractNumbers(remainingText);
+  const values = extractNumbers(
+    remainingText,
+  );
 
   return values[1];
+}
+
+/*
+ * Procura reticulócitos somente dentro da seção
+ * "Contagem de Reticulócitos".
+ *
+ * Isso é importante porque "Valor relativo" e
+ * "Valor absoluto" são nomes genéricos e podem
+ * aparecer em outros exames.
+ */
+function parseReticulocytes(
+  lines: PdfLine[],
+): {
+  relative?: string;
+  absolute?: number;
+} {
+  const headingIndex = lines.findIndex(
+    (line) => {
+      const normalizedLine =
+        normalizeText(line.text);
+
+      return RETICULOCYTE_HEADING_LABELS.some(
+        (label) =>
+          normalizedLine.includes(
+            normalizeText(label),
+          ),
+      );
+    },
+  );
+
+  if (headingIndex === -1) {
+    return {};
+  }
+
+  const headingLine = lines[headingIndex];
+  const sectionLines: PdfLine[] = [];
+
+  /*
+   * Percorre apenas as linhas seguintes na
+   * mesma página e interrompe após o final
+   * da seção dos reticulócitos.
+   */
+  for (
+    let index = headingIndex + 1;
+    index < lines.length;
+    index += 1
+  ) {
+    const line = lines[index];
+
+    if (line.page !== headingLine.page) {
+      break;
+    }
+
+    const normalizedLine =
+      normalizeText(line.text);
+
+    if (
+      normalizedLine.startsWith(
+        "colesterol total",
+      )
+    ) {
+      break;
+    }
+
+    sectionLines.push(line);
+
+    if (
+      normalizedLine.startsWith(
+        "liberado por",
+      )
+    ) {
+      break;
+    }
+  }
+
+  const relativeLine = findLine(
+    sectionLines,
+    RETICULOCYTE_RELATIVE_LABELS,
+  );
+
+  const absoluteLine = findLine(
+    sectionLines,
+    RETICULOCYTE_ABSOLUTE_LABELS,
+  );
+
+  const relative =
+    extractFirstValueAfterLabel(
+      relativeLine,
+      RETICULOCYTE_RELATIVE_LABELS,
+    );
+
+  const absoluteRaw =
+    extractFirstValueAfterLabel(
+      absoluteLine,
+      RETICULOCYTE_ABSOLUTE_LABELS,
+    );
+
+  /*
+   * A AFIP apresenta, neste layout:
+   *
+   * Valor absoluto 34,3 x10/mm3
+   *
+   * portanto 34,3 corresponde a 34.300/mm³.
+   */
+  const absolute =
+    convertThousandsToAbsolute(
+      absoluteRaw,
+    );
+
+  return {
+    relative: cleanDecimal(relative),
+    absolute,
+  };
 }
 
 export function parseHemogram(
@@ -112,12 +254,18 @@ export function parseHemogram(
     LYMPHOCYTE_TYPICAL_LABELS,
   );
 
+  /*
+   * Dá preferência aos linfócitos totais.
+   * Se não existirem, usa linfócitos típicos.
+   */
   const lymphocyteLine =
-    lymphocyteTotalLine ?? lymphocyteTypicalLine;
+    lymphocyteTotalLine ??
+    lymphocyteTypicalLine;
 
-  const lymphocyteLabels = lymphocyteTotalLine
-    ? LYMPHOCYTE_TOTAL_LABELS
-    : LYMPHOCYTE_TYPICAL_LABELS;
+  const lymphocyteLabels =
+    lymphocyteTotalLine
+      ? LYMPHOCYTE_TOTAL_LABELS
+      : LYMPHOCYTE_TYPICAL_LABELS;
 
   const plateletLine = findLine(
     lines,
@@ -160,20 +308,40 @@ export function parseHemogram(
       PLATELET_LABELS,
     );
 
+  const reticulocytes =
+    parseReticulocytes(lines);
+
   return {
-    hemoglobin: cleanDecimal(hemoglobin),
-    hematocrit: cleanDecimal(hematocrit),
+    hemoglobin:
+      cleanDecimal(hemoglobin),
+
+    hematocrit:
+      cleanDecimal(hematocrit),
 
     leukocytes:
-      convertThousandsToAbsolute(leukocytes),
+      convertThousandsToAbsolute(
+        leukocytes,
+      ),
 
     neutrophils:
-      convertThousandsToAbsolute(neutrophils),
+      convertThousandsToAbsolute(
+        neutrophils,
+      ),
 
     lymphocytes:
-      convertThousandsToAbsolute(lymphocytes),
+      convertThousandsToAbsolute(
+        lymphocytes,
+      ),
 
     platelets:
-      convertThousandsToAbsolute(platelets),
+      convertThousandsToAbsolute(
+        platelets,
+      ),
+
+    reticulocytesAbsolute:
+      reticulocytes.absolute,
+
+    reticulocytesRelative:
+      reticulocytes.relative,
   };
 }
