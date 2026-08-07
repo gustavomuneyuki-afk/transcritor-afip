@@ -323,6 +323,29 @@ createStatus(
   "Zinco",
   exams.vitaminMetabolism.zinc,
 ),
+createStatus(
+  "cpk",
+  "CPK",
+  exams.cardiacMuscle.cpk,
+),
+
+createStatus(
+  "ckmb",
+  "CK-MB",
+  exams.cardiacMuscle.ckmb,
+),
+
+createStatus(
+  "troponin",
+  "Troponina",
+  exams.cardiacMuscle.troponin,
+),
+
+createStatus(
+  "proBnp",
+  "proBNP",
+  exams.cardiacMuscle.proBnp,
+),
   ];
 
   return {

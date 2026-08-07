@@ -91,6 +91,12 @@ export type VitaminMetabolismData = {
   vitaminD?: string;
   zinc?: string;
 };
+export type CardiacMuscleData = {
+  cpk?: string;
+  ckmb?: string;
+  troponin?: string;
+  proBnp?: string;
+};
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
@@ -101,6 +107,7 @@ export type ExamResult = {
   inflammatory: InflammatoryData;
   hormones: HormoneData;
   vitaminMetabolism: VitaminMetabolismData;
+  cardiacMuscle: CardiacMuscleData;
   urineProtein?: UrineProteinData;
   urinalysis?: UrinalysisData;
   

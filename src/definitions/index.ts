@@ -6,3 +6,4 @@ export * from "./liverDefinitions";
 export * from "./inflammatoryDefinitions";
 export * from "./hormoneDefinitions";
 export * from "./vitaminMetabolismDefinitions";
+export * from "./cardiacMuscleDefinitions";
