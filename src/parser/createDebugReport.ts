@@ -489,6 +489,36 @@ createStatus(
   "Relação PSA livre/total",
   exams.tumorMarkers.psaFreeTotalRatio,
 ),
+
+createStatus(
+  "urineProtein",
+  "Proteína urinária",
+  exams.urineProtein.urineProtein,
+),
+
+createStatus(
+  "urineCreatinine",
+  "Creatinina urinária",
+  exams.urineProtein.urineCreatinine,
+),
+
+createStatus(
+  "urineAlbumin",
+  "Albumina urinária",
+  exams.urineProtein.urineAlbumin,
+),
+
+createStatus(
+  "proteinCreatinineRatio",
+  "Relação proteína/creatinina",
+  exams.urineProtein.proteinCreatinineRatio,
+),
+
+createStatus(
+  "albuminCreatinineRatio",
+  "Relação albumina/creatinina",
+  exams.urineProtein.albuminCreatinineRatio,
+),
   ];
 
   return {

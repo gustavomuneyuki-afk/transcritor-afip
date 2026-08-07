@@ -53,6 +53,7 @@ export type LiverData = {
 };
 
 export type UrineProteinData = {
+  urineProtein?: string;
   urineCreatinine?: string;
   urineAlbumin?: string;
   proteinCreatinineRatio?: string;
@@ -130,7 +131,7 @@ export type ExamResult = {
   vitaminMetabolism: VitaminMetabolismData;
   cardiacMuscle: CardiacMuscleData;
   coagulation: CoagulationData;
-  urineProtein?: UrineProteinData;
+  urineProtein: UrineProteinData;
   urinalysis: UrinalysisData;
   tumorMarkers: TumorMarkerData;
   

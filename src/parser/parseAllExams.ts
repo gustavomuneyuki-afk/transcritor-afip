@@ -50,6 +50,10 @@ import {
 } from "./urinalysisParser";
 
 import {
+  parseUrineProtein,
+} from "./urineProteinParser";
+
+import {
   parseTumorMarkers,
 } from "./tumorMarkerParser";
 
@@ -92,6 +96,9 @@ export function parseAllExams(
 
     urinalysis:
      parseUrinalysis(lines),
+
+     urineProtein:
+  parseUrineProtein(lines),
 
      tumorMarkers:
   parseTumorMarkers(lines),

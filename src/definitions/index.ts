@@ -9,3 +9,4 @@ export * from "./vitaminMetabolismDefinitions";
 export * from "./cardiacMuscleDefinitions";
 export * from "./coagulationDefinitions";
 export * from "./tumorMarkerDefinitions";
+export * from "./urineProteinDefinitions";

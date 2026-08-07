@@ -51,10 +51,12 @@ import {
 } from "./tumorMarkerFormatter";
 
 import {
+  formatUrineProtein,
+} from "./urineProteinFormatter";
+
+import {
   formatUrinalysis,
 } from "./urinalysisFormatter";
-
-
 
 export function formatAllExams(
   exams: ExamResult,
@@ -106,6 +108,10 @@ export function formatAllExams(
     
  formatTumorMarkers(
   exams.tumorMarkers,
+),
+
+formatUrineProtein(
+  exams.urineProtein,
 ),
 
 formatUrinalysis(
