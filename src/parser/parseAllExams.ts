@@ -49,6 +49,10 @@ import {
   parseUrinalysis,
 } from "./urinalysisParser";
 
+import {
+  parseTumorMarkers,
+} from "./tumorMarkerParser";
+
 export function parseAllExams(
   lines: PdfLine[],
 ): ExamResult {
@@ -85,8 +89,12 @@ export function parseAllExams(
 
     coagulation:
       parseCoagulation(lines),
+
     urinalysis:
      parseUrinalysis(lines),
+
+     tumorMarkers:
+  parseTumorMarkers(lines),
       
   };
 }

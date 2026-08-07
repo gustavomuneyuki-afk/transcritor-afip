@@ -465,6 +465,30 @@ createStatus(
   "U1 Bactérias",
   exams.urinalysis.bacteria,
 ),
+
+createStatus(
+  "afp",
+  "AFP",
+  exams.tumorMarkers.afp,
+),
+
+createStatus(
+  "psaTotal",
+  "PSA total",
+  exams.tumorMarkers.psaTotal,
+),
+
+createStatus(
+  "psaFree",
+  "PSA livre",
+  exams.tumorMarkers.psaFree,
+),
+
+createStatus(
+  "psaFreeTotalRatio",
+  "Relação PSA livre/total",
+  exams.tumorMarkers.psaFreeTotalRatio,
+),
   ];
 
   return {

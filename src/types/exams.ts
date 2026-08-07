@@ -112,6 +112,12 @@ export type CoagulationData = {
   fibrinogen?: string;
   dDimer?: string;
 };
+export type TumorMarkerData = {
+  afp?: string;
+  psaTotal?: string;
+  psaFree?: string;
+  psaFreeTotalRatio?: string;
+};
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
@@ -126,5 +132,6 @@ export type ExamResult = {
   coagulation: CoagulationData;
   urineProtein?: UrineProteinData;
   urinalysis: UrinalysisData;
+  tumorMarkers: TumorMarkerData;
   
 };

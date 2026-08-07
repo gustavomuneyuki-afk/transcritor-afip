@@ -47,8 +47,14 @@ import {
 } from "./vitaminMetabolismFormatter";
 
 import {
+  formatTumorMarkers,
+} from "./tumorMarkerFormatter";
+
+import {
   formatUrinalysis,
 } from "./urinalysisFormatter";
+
+
 
 export function formatAllExams(
   exams: ExamResult,
@@ -98,7 +104,11 @@ export function formatAllExams(
       exams.coagulation,
     ),
     
-    formatUrinalysis(
+ formatTumorMarkers(
+  exams.tumorMarkers,
+),
+
+formatUrinalysis(
   exams.urinalysis,
 ),
     
