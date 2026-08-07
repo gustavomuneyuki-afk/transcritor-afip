@@ -9,6 +9,7 @@ import { parseInflammatory } from "./inflammatoryParser";
 import { parseLipidProfile } from "./lipidProfileParser";
 import { parseLiver } from "./liverParser";
 import { parseRenal } from "./renalParser";
+import { parseVitaminMetabolism } from "./vitaminMetabolismParser";
 
 export function parseAllExams(
   lines: PdfLine[],
@@ -22,5 +23,7 @@ export function parseAllExams(
     liver: parseLiver(lines),
     inflammatory: parseInflammatory(lines),
     hormones: parseHormones(lines),
+    vitaminMetabolism:
+  parseVitaminMetabolism(lines),
   };
 }

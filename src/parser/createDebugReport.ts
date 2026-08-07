@@ -282,6 +282,47 @@ createStatus(
       "PTH",
       exams.hormones.pth,
     ),
+    createStatus(
+  "iron",
+  "Ferro",
+  exams.vitaminMetabolism.iron,
+),
+
+createStatus(
+  "transferrin",
+  "Transferrina",
+  exams.vitaminMetabolism.transferrin,
+),
+
+createStatus(
+  "transferrinSaturation",
+  "Saturação da transferrina",
+  exams.vitaminMetabolism.transferrinSaturation,
+),
+
+createStatus(
+  "vitaminB12",
+  "Vitamina B12",
+  exams.vitaminMetabolism.vitaminB12,
+),
+
+createStatus(
+  "folate",
+  "Ácido fólico",
+  exams.vitaminMetabolism.folate,
+),
+
+createStatus(
+  "vitaminD",
+  "25-OH Vitamina D",
+  exams.vitaminMetabolism.vitaminD,
+),
+
+createStatus(
+  "zinc",
+  "Zinco",
+  exams.vitaminMetabolism.zinc,
+),
   ];
 
   return {

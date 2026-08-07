@@ -82,7 +82,15 @@ export type InflammatoryData = {
   esr?: string;
   ferritin?: string;
 };
-
+export type VitaminMetabolismData = {
+  iron?: string;
+  transferrin?: string;
+  transferrinSaturation?: string;
+  vitaminB12?: string;
+  folate?: string;
+  vitaminD?: string;
+  zinc?: string;
+};
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
@@ -91,7 +99,9 @@ export type ExamResult = {
   electrolytes: ElectrolyteData;
   liver: LiverData;
   inflammatory: InflammatoryData;
-  urineProtein?: UrineProteinData;
   hormones: HormoneData;
+  vitaminMetabolism: VitaminMetabolismData;
+  urineProtein?: UrineProteinData;
   urinalysis?: UrinalysisData;
+  
 };
