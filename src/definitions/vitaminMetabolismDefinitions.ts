@@ -55,18 +55,21 @@ export const VITAMIN_METABOLISM_DEFINITIONS = {
   },
 
   vitaminD: {
-    key: "vitaminD",
-    labels: [
-      "25-OH Vitamina D",
-      "25 OH Vitamina D",
-      "Vitamina D - 25 OH",
-      "Vitamina D 25 OH",
-      "25-Hidroxivitamina D",
-      "25 Hidroxivitamina D",
-    ],
-    strategy: "inline-or-result",
-    maxFollowingLines: 8,
-  },
+  key: "vitaminD",
+  labels: [
+    "Vitamina D Total 25 OH",
+    "Vitamina D Total 25-OH",
+    "Vitamina D 25 OH",
+    "Vitamina D 25-OH",
+    "25-OH Vitamina D",
+    "25 OH Vitamina D",
+    "Vitamina D - 25 OH",
+    "25-Hidroxivitamina D",
+    "25 Hidroxivitamina D",
+  ],
+  strategy: "inline-or-result",
+  maxFollowingLines: 8,
+},
 
   zinc: {
     key: "zinc",
