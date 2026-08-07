@@ -97,6 +97,13 @@ export type CardiacMuscleData = {
   troponin?: string;
   proBnp?: string;
 };
+export type CoagulationData = {
+  prothrombinTime?: string;
+  inr?: string;
+  aptt?: string;
+  fibrinogen?: string;
+  dDimer?: string;
+};
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
@@ -108,6 +115,7 @@ export type ExamResult = {
   hormones: HormoneData;
   vitaminMetabolism: VitaminMetabolismData;
   cardiacMuscle: CardiacMuscleData;
+  coagulation: CoagulationData;
   urineProtein?: UrineProteinData;
   urinalysis?: UrinalysisData;
   

@@ -7,6 +7,10 @@ import {
 } from "./cardiacMuscleFormatter";
 
 import {
+  formatCoagulation,
+} from "./coagulationFormatter";
+
+import {
   formatElectrolytes,
 } from "./electrolyteFormatter";
 
@@ -84,6 +88,10 @@ export function formatAllExams(
 
     formatCardiacMuscle(
       exams.cardiacMuscle,
+    ),
+
+    formatCoagulation(
+      exams.coagulation,
     ),
   ].filter(
     (group) =>

@@ -346,6 +346,35 @@ createStatus(
   "proBNP",
   exams.cardiacMuscle.proBnp,
 ),
+createStatus(
+  "prothrombinTime",
+  "TP",
+  exams.coagulation.prothrombinTime,
+),
+
+createStatus(
+  "inr",
+  "INR",
+  exams.coagulation.inr,
+),
+
+createStatus(
+  "aptt",
+  "TTPa",
+  exams.coagulation.aptt,
+),
+
+createStatus(
+  "fibrinogen",
+  "Fibrinogênio",
+  exams.coagulation.fibrinogen,
+),
+
+createStatus(
+  "dDimer",
+  "D-dímero",
+  exams.coagulation.dDimer,
+),
   ];
 
   return {

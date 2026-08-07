@@ -6,6 +6,10 @@ import {
 } from "./cardiacMuscleParser";
 
 import {
+  parseCoagulation,
+} from "./coagulationParser";
+
+import {
   parseElectrolytes,
 } from "./electrolyteParser";
 
@@ -45,18 +49,23 @@ export function parseAllExams(
   lines: PdfLine[],
 ): ExamResult {
   return {
-    hemogram: parseHemogram(lines),
+    hemogram:
+      parseHemogram(lines),
 
-    glycemic: parseGlycemic(lines),
+    glycemic:
+      parseGlycemic(lines),
 
-    renal: parseRenal(lines),
+    renal:
+      parseRenal(lines),
 
-    lipid: parseLipidProfile(lines),
+    lipid:
+      parseLipidProfile(lines),
 
     electrolytes:
       parseElectrolytes(lines),
 
-    liver: parseLiver(lines),
+    liver:
+      parseLiver(lines),
 
     inflammatory:
       parseInflammatory(lines),
@@ -69,5 +78,8 @@ export function parseAllExams(
 
     cardiacMuscle:
       parseCardiacMuscle(lines),
+
+    coagulation:
+      parseCoagulation(lines),
   };
 }
