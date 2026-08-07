@@ -46,6 +46,10 @@ import {
   formatVitaminMetabolism,
 } from "./vitaminMetabolismFormatter";
 
+import {
+  formatUrinalysis,
+} from "./urinalysisFormatter";
+
 export function formatAllExams(
   exams: ExamResult,
 ): string {
@@ -93,6 +97,11 @@ export function formatAllExams(
     formatCoagulation(
       exams.coagulation,
     ),
+    
+    formatUrinalysis(
+  exams.urinalysis,
+),
+    
   ].filter(
     (group) =>
       group.trim().length > 0,

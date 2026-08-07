@@ -45,6 +45,10 @@ import {
   parseVitaminMetabolism,
 } from "./vitaminMetabolismParser";
 
+import {
+  parseUrinalysis,
+} from "./urinalysisParser";
+
 export function parseAllExams(
   lines: PdfLine[],
 ): ExamResult {
@@ -81,5 +85,8 @@ export function parseAllExams(
 
     coagulation:
       parseCoagulation(lines),
+    urinalysis:
+     parseUrinalysis(lines),
+      
   };
 }

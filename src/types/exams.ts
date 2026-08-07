@@ -68,13 +68,21 @@ export type HormoneData = {
 };
 
 export type UrinalysisData = {
+  density?: string;
+  ph?: string;
   protein?: string;
   glucose?: string;
+  bilirubin?: string;
   ketones?: string;
   blood?: string;
-  leukocytes?: string;
   nitrite?: string;
-  summary?: string;
+  urobilinogen?: string;
+  epithelialCells?: string;
+  leukocytes?: string;
+  redBloodCells?: string;
+  crystals?: string;
+  casts?: string;
+  bacteria?: string;
 };
 export type InflammatoryData = {
   crp?: string;
@@ -117,6 +125,6 @@ export type ExamResult = {
   cardiacMuscle: CardiacMuscleData;
   coagulation: CoagulationData;
   urineProtein?: UrineProteinData;
-  urinalysis?: UrinalysisData;
+  urinalysis: UrinalysisData;
   
 };

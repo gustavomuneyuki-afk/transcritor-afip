@@ -375,6 +375,96 @@ createStatus(
   "D-dímero",
   exams.coagulation.dDimer,
 ),
+
+createStatus(
+  "urinalysisDensity",
+  "U1 Densidade",
+  exams.urinalysis.density,
+),
+
+createStatus(
+  "urinalysisPh",
+  "U1 pH",
+  exams.urinalysis.ph,
+),
+
+createStatus(
+  "urinalysisProtein",
+  "U1 Proteína",
+  exams.urinalysis.protein,
+),
+
+createStatus(
+  "urinalysisGlucose",
+  "U1 Glicose",
+  exams.urinalysis.glucose,
+),
+
+createStatus(
+  "urinalysisBilirubin",
+  "U1 Bilirrubina",
+  exams.urinalysis.bilirubin,
+),
+
+createStatus(
+  "urinalysisKetones",
+  "U1 Cetona",
+  exams.urinalysis.ketones,
+),
+
+createStatus(
+  "urinalysisBlood",
+  "U1 Sangue",
+  exams.urinalysis.blood,
+),
+
+createStatus(
+  "urinalysisNitrite",
+  "U1 Nitrito",
+  exams.urinalysis.nitrite,
+),
+
+createStatus(
+  "urinalysisUrobilinogen",
+  "U1 Urobilinogênio",
+  exams.urinalysis.urobilinogen,
+),
+
+createStatus(
+  "urinalysisEpithelialCells",
+  "U1 Células epiteliais",
+  exams.urinalysis.epithelialCells,
+),
+
+createStatus(
+  "urinalysisLeukocytes",
+  "U1 Leucócitos",
+  exams.urinalysis.leukocytes,
+),
+
+createStatus(
+  "urinalysisRedBloodCells",
+  "U1 Hemácias",
+  exams.urinalysis.redBloodCells,
+),
+
+createStatus(
+  "urinalysisCrystals",
+  "U1 Cristais",
+  exams.urinalysis.crystals,
+),
+
+createStatus(
+  "urinalysisCasts",
+  "U1 Cilindros",
+  exams.urinalysis.casts,
+),
+
+createStatus(
+  "urinalysisBacteria",
+  "U1 Bactérias",
+  exams.urinalysis.bacteria,
+),
   ];
 
   return {
