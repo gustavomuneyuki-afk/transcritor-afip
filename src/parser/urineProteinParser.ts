@@ -96,6 +96,48 @@ function extractNumericValue(
   return undefined;
 }
 
+function parseUrineProteinValue(
+  lines: PdfLine[],
+): string | undefined {
+  const headingIndex = lines.findIndex((line) => {
+    const text = normalizeText(line.text);
+
+    return (
+      text === "proteina, urina"
+    );
+  });
+
+  if (headingIndex === -1) {
+    return undefined;
+  }
+
+  const headingPage =
+    lines[headingIndex].page;
+
+  for (
+    let index = headingIndex + 1;
+    index < lines.length &&
+    index <= headingIndex + 8;
+    index += 1
+  ) {
+    const line = lines[index];
+
+    if (line.page !== headingPage) {
+      break;
+    }
+
+    const match = line.text.match(
+      /^Resultado\s+([\d.,]+)/i,
+    );
+
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return undefined;
+}
+
 export function parseUrineProtein(
   lines: PdfLine[],
 ): UrineProteinData {
@@ -110,7 +152,8 @@ export function parseUrineProtein(
 
   return {
     urineProtein:
-      genericValues.urineProtein,
+  parseUrineProteinValue(lines) ??
+  genericValues.urineProtein,
 
     urineCreatinine:
       extractNumericValue(

@@ -78,6 +78,55 @@ function extractValue(
   return undefined;
 }
 
+function extractCountValue(
+  lines: PdfLine[],
+  labels: string[],
+): string | undefined {
+  for (const line of lines) {
+    const original = line.text.trim();
+    const normalized = normalizeText(original);
+
+    for (const label of labels) {
+      const normalizedLabel = normalizeText(label);
+
+      if (
+        normalized === normalizedLabel ||
+        normalized.startsWith(`${normalizedLabel} `)
+      ) {
+        const remainder = original
+          .slice(label.length)
+          .trim();
+
+        const inferiorMatch = remainder.match(
+          /^Inferior\s+a\s+([\d.,]+)/i,
+        );
+
+        if (inferiorMatch) {
+          return `<${inferiorMatch[1]}`;
+        }
+
+        const superiorMatch = remainder.match(
+          /^Superior\s+a\s+([\d.,]+)/i,
+        );
+
+        if (superiorMatch) {
+          return `>${superiorMatch[1]}`;
+        }
+
+        const numericMatch = remainder.match(
+          /^[\d.,]+/,
+        );
+
+        if (numericMatch) {
+          return numericMatch[0];
+        }
+      }
+    }
+  }
+
+  return undefined;
+}
+
 export function parseUrinalysis(
   lines: PdfLine[],
 ): UrinalysisData {
@@ -145,15 +194,15 @@ export function parseUrinalysis(
       ],
     ),
 
-    leukocytes: extractValue(
-      section,
-      ["Leucócitos", "Leucocitos"],
-    ),
+   leukocytes: extractCountValue(
+  section,
+  ["Leucócitos", "Leucocitos"],
+),
 
-    redBloodCells: extractValue(
-      section,
-      ["Hemácias", "Hemacias"],
-    ),
+redBloodCells: extractCountValue(
+  section,
+  ["Hemácias", "Hemacias"],
+),
 
     crystals: extractValue(
       section,
