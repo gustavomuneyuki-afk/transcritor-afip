@@ -45,6 +45,26 @@ function findUrinalysisSection(
   return section;
 }
 
+function normalizeSemiQuantitativeValue(
+  value: string,
+): string | undefined {
+  const match = value.match(
+    /^(\+(?:\s*\+){0,3})/,
+  );
+
+  if (!match) {
+    return undefined;
+  }
+
+  const count = (
+    match[1].match(/\+/g) ?? []
+  ).length;
+
+  return count > 0
+    ? `${count}+`
+    : undefined;
+}
+
 function extractValue(
   lines: PdfLine[],
   labels: string[],
@@ -68,6 +88,15 @@ function extractValue(
 
         if (!remainder) {
           continue;
+        }
+
+        const semiQuantitative =
+          normalizeSemiQuantitativeValue(
+            remainder,
+          );
+
+        if (semiQuantitative) {
+          return semiQuantitative;
         }
 
         return remainder.split(/\s+/)[0];
@@ -194,15 +223,15 @@ export function parseUrinalysis(
       ],
     ),
 
-   leukocytes: extractCountValue(
-  section,
-  ["Leucócitos", "Leucocitos"],
-),
+    leukocytes: extractCountValue(
+      section,
+      ["Leucócitos", "Leucocitos"],
+    ),
 
-redBloodCells: extractCountValue(
-  section,
-  ["Hemácias", "Hemacias"],
-),
+    redBloodCells: extractCountValue(
+      section,
+      ["Hemácias", "Hemacias"],
+    ),
 
     crystals: extractValue(
       section,
