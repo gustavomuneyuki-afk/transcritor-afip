@@ -85,12 +85,15 @@ export type UrinalysisData = {
   casts?: string;
   bacteria?: string;
 };
+
 export type InflammatoryData = {
   crp?: string;
   procalcitonin?: string;
   esr?: string;
   ferritin?: string;
+  haptoglobin?: string;
 };
+
 export type VitaminMetabolismData = {
   iron?: string;
   transferrin?: string;
@@ -100,12 +103,14 @@ export type VitaminMetabolismData = {
   vitaminD?: string;
   zinc?: string;
 };
+
 export type CardiacMuscleData = {
   cpk?: string;
   ckmb?: string;
   troponin?: string;
   proBnp?: string;
 };
+
 export type CoagulationData = {
   prothrombinTime?: string;
   inr?: string;
@@ -113,12 +118,14 @@ export type CoagulationData = {
   fibrinogen?: string;
   dDimer?: string;
 };
+
 export type TumorMarkerData = {
   afp?: string;
   psaTotal?: string;
   psaFree?: string;
   psaFreeTotalRatio?: string;
 };
+
 export type ExamResult = {
   hemogram: HemogramData;
   glycemic: GlycemicData;
@@ -134,5 +141,4 @@ export type ExamResult = {
   urineProtein: UrineProteinData;
   urinalysis: UrinalysisData;
   tumorMarkers: TumorMarkerData;
-  
 };
