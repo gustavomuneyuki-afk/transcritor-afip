@@ -21,5 +21,9 @@ export function formatInflammatory(
     parts.push(`Ferr ${data.ferritin}`);
   }
 
+  if (data.haptoglobin) {
+    parts.push(`Hapto ${data.haptoglobin}`);
+  }
+
   return parts.join(" / ");
 }
