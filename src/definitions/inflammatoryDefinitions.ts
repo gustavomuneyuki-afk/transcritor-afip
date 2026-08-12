@@ -50,4 +50,13 @@ export const INFLAMMATORY_DEFINITIONS = {
     strategy: "inline-or-result",
     maxFollowingLines: 8,
   },
+
+  haptoglobin: {
+    key: "haptoglobin",
+    labels: [
+      "Haptoglobina",
+    ],
+    strategy: "inline-or-result",
+    maxFollowingLines: 8,
+  },
 } satisfies Record<string, ExamDefinition>;
