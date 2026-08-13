@@ -83,6 +83,11 @@ export function createDebugReport(
       exams.glycemic.glycatedHemoglobin,
     ),
     createStatus(
+      "insulin",
+      "Insulina",
+      exams.glycemic.insulin,
+    ),
+    createStatus(
       "urea",
       "Ureia",
       exams.renal.urea,
