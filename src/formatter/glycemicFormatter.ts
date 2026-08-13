@@ -15,5 +15,9 @@ export function formatGlycemic(
     );
   }
 
+  if (data.insulin) {
+    parts.push(`Ins ${data.insulin}`);
+  }
+
   return parts.join(" / ");
 }
