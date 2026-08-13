@@ -15,6 +15,7 @@ export type HemogramData = {
 export type GlycemicData = {
   glucose?: string;
   glycatedHemoglobin?: string;
+  insulin?: string;
 };
 
 export type RenalData = {
