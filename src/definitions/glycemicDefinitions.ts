@@ -26,4 +26,13 @@ export const GLYCEMIC_DEFINITIONS = {
     ],
     maxFollowingLines: 8,
   },
+
+  insulin: {
+    key: "insulin",
+    labels: [
+      "Insulina",
+    ],
+    strategy: "inline-or-result",
+    maxFollowingLines: 8,
+  },
 } satisfies Record<string, ExamDefinition>;
