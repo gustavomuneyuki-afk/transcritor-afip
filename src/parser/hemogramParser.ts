@@ -13,6 +13,13 @@ const HEMOGLOBIN_LABELS = [
   "Hemoglobina",
 ];
 
+const HEMOGLOBIN_EXCLUDED_TERMS = [
+  "glicada",
+  "glicosilada",
+  "a1c",
+  "hba1c",
+];
+
 const HEMATOCRIT_LABELS = [
   "Hematócrito",
   "Hematocrito",
@@ -227,6 +234,7 @@ export function parseHemogram(
   const hemoglobinLine = findLine(
     lines,
     HEMOGLOBIN_LABELS,
+    HEMOGLOBIN_EXCLUDED_TERMS,
   );
 
   const hematocritLine = findLine(
